@@ -23,7 +23,7 @@
     </div>
 </div>
 <div class="body">
-    <h4>Add new category</h4>
+    <h4>Add new invoice</h4>
     <form action="/invoices" method="POST">
         <h5>Invoice information</h5>
         <p>Invoice id</p>
