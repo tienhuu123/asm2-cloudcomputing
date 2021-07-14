@@ -24,9 +24,9 @@ mongoose.connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(e => {
-    console.log('connect thanh cong');
+    console.log('connect success');
 }).catch(e => {
-    console.log('connect that bai');
+    console.log('connect lose');
 })
 
 const schema_pr = new mongoose.Schema({
