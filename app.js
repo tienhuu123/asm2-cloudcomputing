@@ -68,6 +68,8 @@ router.get('/', (req, res) => {
     res.render('home');
 })
 
+
+
 router.get('/printBill/:id', async (req, res) => {
     var id_bill = Number(req.params.id);
     var inforBill;
@@ -110,6 +112,119 @@ router.get('/invoices', async (req, res) => {
 
 })
 
+
+router.post('/invoices', (req, res) => {
+    var i = 0;
+    if(Array.isArray(req.body.productid)){
+        for (i; i < req.body.productid.length; i++) {
+            var bill = {
+                id_order: req.body.invoiceid,
+                date: req.body.invoicedate,
+                id_product: req.body.productid[i],
+                quantity: req.body.quantity[i],
+                price: Number(req.body.productprice[i]) *  Number(req.body.quantity[i]),
+            }
+            mongoose.model('invoice', schema_order).create(bill);
+        }
+    }
+    else {
+        var bill = {
+            id_order: req.body.invoiceid,
+            date: req.body.invoicedate,
+            id_product: req.body.productid,
+            quantity: req.body.quantity,
+            price:Number(Number(req.body.productprice) *  Number(req.body.quantity)).toFixed(2),
+        }
+        mongoose.model('invoice', schema_order).create(bill);
+    }
+
+    res.redirect('/');
+})
+
+router.get('/viewInvoices', (req, res) => {
+    mongoose.model('invoice', schema_order).aggregate().group({
+        _id: {
+            id: '$id_order',
+            date: '$date'
+        },
+        type_pr: {
+            $sum: 1
+        },
+        quantity: {
+            $sum: '$quantity'
+        },
+        total: {
+            $sum: '$price'
+        },
+    }).exec((err, bill) => {
+        var i = 0;
+        for (i; i < bill.length; i++) {
+            bill[i]._id.date = new Date(bill[i]._id.date).getDate() + '-' + (new Date(bill[i]._id.date).getMonth() + 1) + '-' + new Date(bill[i]._id.date).getFullYear();
+        }
+        res.render('viewInvoices', {
+            bill
+        });
+    })
+})
+
+
+
+router.get('/addProduct', (req, res) => {
+    res.render('addProduct');
+})
+router.post('/addProduct', async (req, res) => {
+    await mongoose.model('product', schema_pr).create(req.body);
+    res.redirect('/');
+})
+
+router.get('/addCategory', (req, res) => {
+    res.render('addCategory');
+})
+router.post('/addCategory', async (req, res) => {
+    await mongoose.model('category', schema_cat).create(req.body);
+    res.render('/');
+})
+router.get('/addCustomer', (req, res) => {
+    res.render('addCustomer');
+})
+router.post('/addCustomer', async (req, res) => {
+    await mongoose.model('customer', schema_cs).create(req.body);
+    res.redirect('/');
+})
+
+
+
+router.get('/viewProducts', async (req, res) => {
+    await mongoose.model('product', schema_pr).find({}).then(e => {
+        var pr = e.map(es => es.toObject());
+        console.log(pr);
+        res.render('viewProducts', {
+            pr
+        });
+    });
+})
+router.get('/viewCategories', async (req, res) => {
+    await mongoose.model('category', schema_cat).find({}).then(e => {
+        var ct = e.map(es => es.toObject());
+        res.render('viewCategories', {
+            ct
+        });
+    });
+})
+
+router.get('/viewCustomers', async (req, res) => {
+    await mongoose.model('customer', schema_cs).find({}).then(e => {
+        var cs = e.map(es => es.toObject());
+        res.render('viewCustomers', {
+            cs
+        });
+    });
+})
+
+app.use('/', router);
+app.listen(process.env.PORT || port, () => {
+    console.log(`Example app listening at http://localhost:${port}`)
+})
 
 router.post('/invoices', (req, res) => {
     var i = 0;

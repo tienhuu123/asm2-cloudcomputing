@@ -68,8 +68,6 @@ router.get('/', (req, res) => {
     res.render('home');
 })
 
-
-
 router.get('/printBill/:id', async (req, res) => {
     var id_bill = Number(req.params.id);
     var inforBill;
@@ -115,16 +113,29 @@ router.get('/invoices', async (req, res) => {
 
 router.post('/invoices', (req, res) => {
     var i = 0;
-    for (i; i < req.body.productid.length; i++) {
+    if(Array.isArray(req.body.productid)){
+        for (i; i < req.body.productid.length; i++) {
+            var bill = {
+                id_order: req.body.invoiceid,
+                date: req.body.invoicedate,
+                id_product: req.body.productid[i],
+                quantity: req.body.quantity[i],
+                price: Number(req.body.productprice[i]) *  Number(req.body.quantity[i]),
+            }
+            mongoose.model('invoice', schema_order).create(bill);
+        }
+    }
+    else {
         var bill = {
             id_order: req.body.invoiceid,
             date: req.body.invoicedate,
-            id_product: req.body.productid[i],
-            quantity: req.body.quantity[i],
-            price: req.body.productprice[i],
+            id_product: req.body.productid,
+            quantity: req.body.quantity,
+            price:Number(Number(req.body.productprice) *  Number(req.body.quantity)).toFixed(2),
         }
         mongoose.model('invoice', schema_order).create(bill);
     }
+
     res.redirect('/');
 })
 
